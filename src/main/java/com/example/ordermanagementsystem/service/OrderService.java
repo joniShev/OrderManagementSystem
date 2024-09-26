@@ -1,6 +1,8 @@
 package com.example.ordermanagementsystem.service;
 
+import com.example.ordermanagementsystem.dto.OrderDTO;
 import com.example.ordermanagementsystem.entity.Order;
+import com.example.ordermanagementsystem.mapper.OrderMapper;
 import com.example.ordermanagementsystem.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,30 +18,39 @@ public class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    public Order createOrder(Order order) {
+    public OrderDTO createOrder(OrderDTO orderDTO) {
+        Order order = OrderMapper.INSTANCE.orderDTOToOrder(orderDTO);
         order.setCreatedAt(LocalDateTime.now());
-        return orderRepository.save(order);
+        return OrderMapper.INSTANCE.orderToOrderDTO(orderRepository.save(order));
     }
 
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+    public List<OrderDTO> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream()
+                .map(OrderMapper.INSTANCE::orderToOrderDTO)
+                .toList();
     }
 
-    public Order getOrderById(Long orderId) {
-        return orderRepository.findById(orderId).orElse(null);
+    public OrderDTO getOrderById(Long orderId) {
+        return orderRepository.findById(orderId)
+                .map(OrderMapper.INSTANCE::orderToOrderDTO)
+                .orElse(null);
     }
 
-    public Order updateOrder(Long orderId, Order orderDetails) {
-        Order order = getOrderById(orderId);
-        if (order != null) {
-            order.setDescription(orderDetails.getDescription());
-            order.setTotalPrice(orderDetails.getTotalPrice());
-            return orderRepository.save(order);
+    public OrderDTO updateOrder(Long orderId, OrderDTO orderDTO) {
+        return orderRepository.findById(orderId).map(order -> {
+            order.setDescription(orderDTO.getDescription());
+            order.setTotalPrice(orderDTO.getTotalPrice());
+            Order updatedOrder = orderRepository.save(order);
+            return OrderMapper.INSTANCE.orderToOrderDTO(updatedOrder);
+        }).orElse(null);
+    }
+
+    public boolean deleteOrder(Long orderId) {
+        if (orderRepository.existsById(orderId)) {
+            orderRepository.deleteById(orderId);
+            return true;
         }
-        return null;
-    }
-
-    public void deleteOrder(Long orderId) {
-        orderRepository.deleteById(orderId);
+        return false;
     }
 }

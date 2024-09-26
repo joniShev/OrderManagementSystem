@@ -1,6 +1,6 @@
 package com.example.ordermanagementsystem.controller;
 
-import com.example.ordermanagementsystem.entity.Order;
+import com.example.ordermanagementsystem.dto.OrderDTO;
 import com.example.ordermanagementsystem.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,17 +18,17 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
-        return ResponseEntity.ok(orderService.createOrder(order));
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO) {
+        return ResponseEntity.ok(orderService.createOrder(orderDTO));
     }
 
     @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders() {
+    public ResponseEntity<List<OrderDTO>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
         if (orderService.getOrderById(id) != null) {
             return ResponseEntity.ok(orderService.getOrderById(id));
         }
@@ -36,18 +36,20 @@ public class OrderController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
-        Order updateOrder = orderService.updateOrder(id, order);
-        if (updateOrder != null) {
-            return ResponseEntity.ok(updateOrder);
+    public ResponseEntity<OrderDTO> updateOrder(@PathVariable Long id, @RequestBody OrderDTO orderDTO) {
+        OrderDTO updatedOrderDTO = orderService.updateOrder(id, orderDTO);
+        if (updatedOrderDTO != null) {
+            return ResponseEntity.ok(updatedOrderDTO);
         }
         return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Order> deleteOrder(@PathVariable Long id) {
-        orderService.deleteOrder(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        if (orderService.deleteOrder(id)) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
 }
